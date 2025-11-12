@@ -45,8 +45,6 @@ output.md
 !README.md
 !TESTING.md
 !LOCAL_LLM.md
-!QUICKSTART.md
-!SHARING.md
 
 # Virtual environment
 venv/

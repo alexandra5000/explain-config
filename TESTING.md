@@ -109,7 +109,7 @@ Then paste your YAML config and press Ctrl+D (Mac/Linux) or Ctrl+Z (Windows).
 
 1. **Start Streamlit:**
    ```bash
-   streamlit run streamlit_app.py
+   streamlit run app.py
    ```
 
 2. **Open browser:** Navigate to `http://localhost:8501`

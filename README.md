@@ -107,14 +107,8 @@ python3 -m explain_config.cli --file config.yaml --model llama3.1:8b
 
 ### Web UI
 
-**Simple version:**
 ```bash
 streamlit run app.py
-```
-
-**Full-featured version (with file upload, settings):**
-```bash
-streamlit run streamlit_app.py
 ```
 
 ## Example
@@ -176,7 +170,7 @@ explain-config/
 │   ├── explainer.py    # LLM explanation generation
 │   └── formatter.py    # Output formatting
 ├── test_configs/       # Test configuration files
-├── streamlit_app.py    # Optional web UI
+├── app.py              # Web UI
 ├── requirements.txt
 ├── setup.py
 └── README.md

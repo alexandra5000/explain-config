@@ -17,8 +17,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         "pyyaml>=6.0",
-        "openai>=1.0.0",
         "python-dotenv>=1.0.0",
+        "requests>=2.31.0",
     ],
     extras_require={
         "web": ["streamlit>=1.28.0"],
