@@ -38,10 +38,14 @@ wheels/
 .DS_Store
 Thumbs.db
 
-# Output files
+# Output files (generated markdown)
+test_output_*.md
+output.md
 *.md
 !README.md
 !TESTING.md
+!LOCAL_LLM.md
+!QUICKSTART.md
 
 # Virtual environment
 venv/
