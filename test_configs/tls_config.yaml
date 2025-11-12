@@ -1,0 +1,7 @@
+exporters:
+  otlp:
+    endpoint: "https://collector.example.com:4317"
+    tls:
+      insecure: false
+      ca_file: "/etc/ssl/certs/collector-ca.crt"
+

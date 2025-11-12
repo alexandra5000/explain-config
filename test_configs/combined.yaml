@@ -1,0 +1,22 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+
+processors:
+  batch:
+    send_batch_max_size: 10000
+    timeout: 10s
+
+exporters:
+  otlp:
+    endpoint: "https://collector.example.com:4317"
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 5000
+    tls:
+      insecure: false
+      ca_file: "/etc/ssl/certs/collector-ca.crt"
+

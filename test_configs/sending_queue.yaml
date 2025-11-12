@@ -1,0 +1,7 @@
+exporters:
+  otlp:
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 5000
+
