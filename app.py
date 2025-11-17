@@ -13,12 +13,13 @@ from explain_config.explainer import OllamaExplainer
 from explain_config.formatter import OutputFormatter
 
 
-def explain_config(yaml_input: str) -> str:
+def explain_config(yaml_input: str, model: str = "llama3.2") -> str:
     """
     Explain a YAML configuration.
     
     Args:
         yaml_input: YAML configuration string
+        model: Ollama model name to use
         
     Returns:
         Formatted explanation as markdown string
@@ -33,7 +34,7 @@ def explain_config(yaml_input: str) -> str:
         return "No components found in the configuration."
     
     # Initialize explainer
-    explainer = OllamaExplainer(model="llama3.2")
+    explainer = OllamaExplainer(model=model)
     
     # Generate explanations
     explanations = []
@@ -67,6 +68,15 @@ st.set_page_config(
 st.title("📖 EDOT Config Explainer")
 st.markdown("Explain Elastic Distribution of OpenTelemetry Collector configurations")
 
+# Sidebar for settings
+with st.sidebar:
+    st.header("Settings")
+    model_name = st.text_input(
+        "Ollama Model",
+        value="llama3.2",
+        help="Name of the Ollama model to use (e.g., llama3.2, llama3.1:8b)"
+    )
+
 yaml_input = st.text_area(
     "Paste your EDOT configuration YAML",
     height=300,
@@ -87,7 +97,7 @@ if st.button("Explain", type="primary"):
     else:
         try:
             with st.spinner("Generating explanation..."):
-                explanation = explain_config(yaml_input)
+                explanation = explain_config(yaml_input, model=model_name)
                 st.markdown(explanation)
         except Exception as e:
             st.error(f"Error: {str(e)}")

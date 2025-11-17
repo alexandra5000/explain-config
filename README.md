@@ -12,168 +12,65 @@ EDOT Config Explainer is a Python CLI tool and web application that automaticall
 
 ## Installation
 
-**Option 1: Using a virtual environment (recommended)**
+### **1. Clone the repository:**
 
-```bash
-# Create virtual environment
-python3 -m venv venv
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/explain-config.git
+   cd explain-config
+   ```
 
-# Activate it
-source venv/bin/activate  # On macOS/Linux
-# or
-venv\Scripts\activate     # On Windows
+### **2. Set up the virtual environment:**
 
-# Install dependencies
-pip install -r requirements.txt
-```
+  ```bash
+  # Create virtual environment
+  python3 -m venv venv
 
-**Option 2: Install globally (not recommended on macOS)**
+  # Activate it
+  source venv/bin/activate  # On macOS/Linux
+  # or
+  venv\Scripts\activate     # On Windows
 
-```bash
-pip3 install -r requirements.txt
-```
+  # Install dependencies
+  pip install -r requirements.txt
+  ```
 
-## Setup
+### **3. Install Ollama:**
 
-### Install Ollama
+  Download from https://ollama.ai.
 
-**macOS:**
-```bash
-brew install ollama
-```
+  or, on macOS:
 
-**Linux:**
-```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-```
+  ```bash
+  brew install ollama
+  ```
 
-**Windows:**
+### **4. Pull a model:**
 
-Download from https://ollama.ai.
+  ```bash
+  # Pull a model (one-time setup)
+  ollama pull llama3.2        # Small, fast (2GB)
+  # or
+  ollama pull llama3.1:8b     # Better quality (4.7GB)
+  ```
 
-### Pull a model
+### **5. (Optional) Verify Ollama is running:**
 
-```bash
-# Pull a model (one-time setup)
-ollama pull llama3.2        # Small, fast (2GB)
-# or
-ollama pull llama3.1:8b     # Better quality (4.7GB)
-```
+  ```bash
+  ollama list
+  ```
 
-### Verify Ollama is running
+  Refer to [LOCAL_LLM.md](LOCAL_LLM.md) for detailed instructions.
 
-```bash
-# Start Ollama (usually runs automatically)
-ollama serve
+### **6. Use the tool:**
 
-# Test it's working
-ollama list
-```
+  * **Web UI (recommended)**
 
-Refer to [LOCAL_LLM.md](LOCAL_LLM.md) for detailed instructions.
+    ```bash
+    streamlit run app.py
+    ```
+  
+  * **CLI**
 
-## Usage
-
-If using a virtual environment, make sure it's activated:
-
-```bash
-source venv/bin/activate
-```
-
-### CLI
-
-**From a file:**
-```bash
-python3 -m explain_config.cli --file config.yaml
-```
-
-**From stdin:**
-```bash
-cat config.yaml | python3 -m explain_config.cli
-```
-
-**Interactive prompt:**
-```bash
-python3 -m explain_config.cli
-```
-
-**Export to markdown:**
-```bash
-python3 -m explain_config.cli --file config.yaml --md-out explanations.md
-```
-
-**Use a different model:**
-```bash
-python3 -m explain_config.cli --file config.yaml --model llama3.1:8b
-```
-
-### Web UI
-
-```bash
-streamlit run app.py
-```
-
-## Example
-
-Given a YAML config like:
-
-```yaml
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-
-processors:
-  batch:
-    timeout: 1s
-    send_batch_size: 1024
-
-exporters:
-  elasticsearch:
-    endpoints:
-      - http://localhost:9200
-```
-
-The tool will automatically detect and explain each component with:
-- Short title
-- Bullet list of field explanations
-- "Why it matters" section
-
-## Quick test
-
-Test with the provided example configs:
-
-```bash
-# Test with OTLP receiver
-python3 -m explain_config.cli --file test_configs/otlp_receiver.yaml
-
-# Test with batch processor
-python3 -m explain_config.cli --file test_configs/batch_processor.yaml
-
-# Test with combined config (multiple components)
-python3 -m explain_config.cli --file test_configs/combined.yaml --md-out output.md
-
-# Or run the quick test script
-./test_quick.sh
-```
-
-Refer to [TESTING.md](TESTING.md) for detailed testing instructions.
-
-## Project structure
-
-```
-explain-config/
-├── explain_config/
-│   ├── __init__.py
-│   ├── cli.py          # Main CLI entry point
-│   ├── parser.py       # YAML parsing
-│   ├── detector.py     # Component detection
-│   ├── explainer.py    # LLM explanation generation
-│   └── formatter.py    # Output formatting
-├── test_configs/       # Test configuration files
-├── app.py              # Web UI
-├── requirements.txt
-├── setup.py
-└── README.md
-```
+    ```bash
+    python3 -m explain_config.cli --file your-config.yaml
+    ```
