@@ -9,6 +9,7 @@ from explain_config.parser import ConfigParser
 from explain_config.detector import ComponentDetector
 from explain_config.explainer import OllamaExplainer
 from explain_config.formatter import OutputFormatter
+from explain_config.docs_manager import DocsManager
 
 
 def get_input_content(args: argparse.Namespace) -> str:
@@ -101,7 +102,59 @@ Examples:
         help='Ollama API URL (default: http://localhost:11434)'
     )
     
+    parser.add_argument(
+        '--refresh-docs',
+        action='store_true',
+        help='Force refresh of Elastic documentation cache'
+    )
+    
+    parser.add_argument(
+        '--no-docs',
+        action='store_true',
+        help='Disable Elastic documentation context (use model knowledge only)'
+    )
+    
+    parser.add_argument(
+        '--docs-status',
+        action='store_true',
+        help='Show documentation cache status and exit'
+    )
+    
     args = parser.parse_args()
+    
+    # Handle docs status check
+    if args.docs_status:
+        docs_manager = DocsManager(include_upstream=True)
+        status = docs_manager.get_cache_status()
+        print("Documentation Cache Status:")
+        print(f"\nElastic Documentation:")
+        print(f"  Cached: {status['cached']}")
+        print(f"  Stale: {status['stale']}")
+        print(f"  Last updated: {status['last_updated']}")
+        print(f"  Cache directory: {status['cache_dir']}")
+        if status.get('upstream_enabled'):
+            print(f"\nOpenTelemetry Documentation:")
+            print(f"  Cached: {status.get('otel_cached', False)}")
+            print(f"  Stale: {status.get('otel_stale', True)}")
+            print(f"  Last updated: {status.get('otel_last_updated', 'Never')}")
+            print(f"  Files downloaded: {status.get('otel_files', 0)}")
+            print(f"  Cache directory: {status.get('otel_cache_dir', 'N/A')}")
+        sys.exit(0)
+    
+    # Handle docs refresh
+    if args.refresh_docs:
+        print("Refreshing documentation...", file=sys.stderr)
+        docs_manager = DocsManager(include_upstream=True)
+        try:
+            docs_manager.download_docs(force=True)
+            print("Elastic documentation refreshed.", file=sys.stderr)
+            if docs_manager.include_upstream:
+                docs_manager.download_otel_docs(force=True)
+                print("OpenTelemetry documentation refreshed.", file=sys.stderr)
+            print("Documentation refreshed successfully.", file=sys.stderr)
+        except Exception as e:
+            print(f"Error refreshing docs: {e}", file=sys.stderr)
+            sys.exit(1)
     
     try:
         # Get YAML content
@@ -135,7 +188,11 @@ Examples:
         
         # Initialize explanation generator
         try:
-            explainer = OllamaExplainer(model=args.model, base_url=args.ollama_url)
+            explainer = OllamaExplainer(
+                model=args.model, 
+                base_url=args.ollama_url,
+                use_docs=not args.no_docs
+            )
         except ValueError as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)

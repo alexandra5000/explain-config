@@ -11,9 +11,10 @@ from explain_config.parser import ConfigParser
 from explain_config.detector import ComponentDetector
 from explain_config.explainer import OllamaExplainer
 from explain_config.formatter import OutputFormatter
+from explain_config.docs_manager import DocsManager
 
 
-def explain_config(yaml_input: str, model: str = "llama3.2") -> str:
+def explain_config(yaml_input: str, model: str = "llama3.2", use_docs: bool = True) -> str:
     """
     Explain a YAML configuration.
     
@@ -34,7 +35,7 @@ def explain_config(yaml_input: str, model: str = "llama3.2") -> str:
         return "No components found in the configuration."
     
     # Initialize explainer
-    explainer = OllamaExplainer(model=model)
+    explainer = OllamaExplainer(model=model, use_docs=use_docs)
     
     # Generate explanations
     explanations = []
@@ -76,6 +77,48 @@ with st.sidebar:
         value="llama3.2",
         help="Name of the Ollama model to use (e.g., llama3.2, llama3.1:8b)"
     )
+    
+    use_docs = st.checkbox(
+        "Use Elastic Documentation",
+        value=True,
+        help="Include up-to-date Elastic documentation context in explanations"
+    )
+    
+    st.divider()
+    st.subheader("Documentation")
+    
+    docs_manager = DocsManager(include_upstream=True)
+    cache_status = docs_manager.get_cache_status()
+    
+    st.write("**Elastic Docs:**")
+    if cache_status["cached"]:
+        st.success("✓ Cached")
+        st.caption(f"Updated: {cache_status['last_updated']}")
+        if cache_status["stale"]:
+            st.warning("⚠ Stale (>7 days)")
+    else:
+        st.info("Will download on first use")
+    
+    if cache_status.get("upstream_enabled"):
+        st.write("**OpenTelemetry Docs:**")
+        if cache_status.get("otel_cached"):
+            st.success("✓ Cached")
+            st.caption(f"Updated: {cache_status.get('otel_last_updated', 'Never')} ({cache_status.get('otel_files', 0)} files)")
+            if cache_status.get("otel_stale"):
+                st.warning("⚠ Stale (>7 days)")
+        else:
+            st.info("Will download on first use")
+    
+    if st.button("🔄 Refresh Docs", help="Force download latest documentation"):
+        with st.spinner("Downloading latest documentation..."):
+            try:
+                docs_manager.download_docs(force=True)
+                if docs_manager.include_upstream:
+                    docs_manager.download_otel_docs(force=True)
+                st.success("Documentation refreshed!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error refreshing docs: {e}")
 
 yaml_input = st.text_area(
     "Paste your EDOT configuration YAML",
@@ -97,7 +140,7 @@ if st.button("Explain", type="primary"):
     else:
         try:
             with st.spinner("Generating explanation..."):
-                explanation = explain_config(yaml_input, model=model_name)
+                explanation = explain_config(yaml_input, model=model_name, use_docs=use_docs)
                 st.markdown(explanation)
         except Exception as e:
             st.error(f"Error: {str(e)}")
