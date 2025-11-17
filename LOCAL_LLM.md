@@ -1,26 +1,28 @@
-# Using Local LLMs (No API Key Required!)
+# Quick start with Ollama
 
-You can use **Ollama** to run LLMs locally on your machine - no API key needed!
-
-## Quick Start with Ollama
+You can use Ollama to run LLMs locally on your machine - no API key needed!
 
 ### 1. Install Ollama
 
-**macOS:**
-```bash
-brew install ollama
-# Or download from https://ollama.ai
-```
+* macOS:
 
-**Linux:**
-```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-```
+    ```bash
+    brew install ollama
+    ```
 
-**Windows:**
-Download from https://ollama.ai
+    Alternatively, you can download from https://ollama.ai.
 
-### 2. Start Ollama and Pull a Model
+* Linux:
+
+    ```bash
+    curl -fsSL https://ollama.ai/install.sh | sh
+    ```
+
+* Windows
+
+    Download from https://ollama.ai.
+
+### 2. Start Ollama and pull a model
 
 ```bash
 # Start Ollama (usually runs automatically)
@@ -40,14 +42,14 @@ ollama pull mistral          # Alternative model
 # Activate venv
 source venv/bin/activate
 
-# Use Ollama (no API key needed!)
+# Use Ollama
 python3 -m explain_config.cli --file test_configs/otlp_receiver.yaml
 
 # Use a different model
 python3 -m explain_config.cli --file test_configs/otlp_receiver.yaml --model llama3.1:8b
 ```
 
-## Available Models
+## Available models
 
 Popular models for technical documentation:
 
@@ -57,43 +59,26 @@ Popular models for technical documentation:
 - `codellama` - Specialized for code/technical content
 
 See all available models:
+
 ```bash
 ollama list
 ```
 
-## Benefits of Local LLMs
-
-✅ **No API key required** - Works completely offline  
-✅ **No usage costs** - Free to run  
-✅ **Privacy** - Your configs never leave your machine  
-✅ **No rate limits** - Run as many explanations as you want  
-✅ **Works offline** - Once models are downloaded  
-
-## Benefits
-
-| Feature | Ollama |
-|---------|--------|
-| API Key | ❌ No |
-| Cost | Free |
-| Privacy | ✅ 100% Local |
-| Speed | Fast (local) |
-| Offline | ✅ Yes |
-
 ## Troubleshooting
 
-**"Cannot connect to Ollama"**
-- Make sure Ollama is running: `ollama serve`
-- Check it's accessible: `curl http://localhost:11434/api/tags`
+* Cannot connect to Ollama:
+    * Make sure Ollama is running: `ollama serve`
+    * Check it's accessible: `curl http://localhost:11434/api/tags`
 
-**"Model not found"**
-- Pull the model first: `ollama pull llama3.2`
-- Check available models: `ollama list`
+* Model not found:
+    * Pull the model first: `ollama pull llama3.2`
+    * Check available models: `ollama list`
 
-**Slow responses**
-- Try a smaller model (llama3.2 instead of llama3.1:8b)
-- Make sure you have enough RAM (models need 2-8GB depending on size)
+* Slow responses:
+    * Try a smaller model (llama3.2 instead of llama3.1:8b)
+    * Make sure you have enough RAM (models need 2-8GB depending on size)
 
-## Example Usage
+## Example usage
 
 ```bash
 # Basic usage

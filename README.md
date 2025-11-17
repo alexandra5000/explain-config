@@ -1,14 +1,14 @@
 # EDOT Config Explainer
 
-A Python CLI tool that automatically detects and explains all components in Elastic Distribution of OpenTelemetry (EDOT) Collector YAML configurations using local LLMs (Ollama) - **no API keys required!**
+EDOT Config Explainer is a Python CLI tool and web application that automatically detects and explains all components in Elastic Distributions of OpenTelemetry (EDOT) Collector YAML configurations using local LLMs (Ollama).
 
 ## Features
 
 - **Auto-detection**: Automatically identifies receivers, processors, exporters, extensions, and service sections
 - **Multiple input methods**: Read from file, stdin, or interactive prompt
 - **Formatted output**: Console output with optional markdown export
-- **Web UI**: Optional Streamlit interface for easy demos
-- **100% Local**: Uses Ollama for local LLM inference - no API keys, completely private
+- **Web UI**: Optional Streamlit interface
+- **100% Local**: Uses Ollama for local LLM inference
 
 ## Installation
 
@@ -48,9 +48,10 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ```
 
 **Windows:**
-Download from https://ollama.ai
 
-### Pull a Model
+Download from https://ollama.ai.
+
+### Pull a model
 
 ```bash
 # Pull a model (one-time setup)
@@ -59,7 +60,7 @@ ollama pull llama3.2        # Small, fast (2GB)
 ollama pull llama3.1:8b     # Better quality (4.7GB)
 ```
 
-### Verify Ollama is Running
+### Verify Ollama is running
 
 ```bash
 # Start Ollama (usually runs automatically)
@@ -69,11 +70,12 @@ ollama serve
 ollama list
 ```
 
-See [LOCAL_LLM.md](LOCAL_LLM.md) for detailed instructions.
+Refer to [LOCAL_LLM.md](LOCAL_LLM.md) for detailed instructions.
 
 ## Usage
 
-**Note:** If using a virtual environment, make sure it's activated:
+If using a virtual environment, make sure it's activated:
+
 ```bash
 source venv/bin/activate
 ```
@@ -138,7 +140,7 @@ The tool will automatically detect and explain each component with:
 - Bullet list of field explanations
 - "Why it matters" section
 
-## Quick Test
+## Quick test
 
 Test with the provided example configs:
 
@@ -156,9 +158,9 @@ python3 -m explain_config.cli --file test_configs/combined.yaml --md-out output.
 ./test_quick.sh
 ```
 
-See [TESTING.md](TESTING.md) for detailed testing instructions.
+Refer to [TESTING.md](TESTING.md) for detailed testing instructions.
 
-## Project Structure
+## Project structure
 
 ```
 explain-config/
