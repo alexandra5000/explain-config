@@ -1,6 +1,6 @@
 # EDOT Config Explainer
 
-EDOT Config Explainer is a Python CLI tool and web application that automatically detects and explains all components in Elastic Distributions of OpenTelemetry (EDOT) Collector YAML configurations using local LLMs (Ollama).
+EDOT Config Explainer is a Python CLI tool and web application that automatically detects and explains all components in Elastic Distribution of OpenTelemetry (EDOT) Collector YAML configurations using local LLMs (Ollama).
 
 ## Features
 
@@ -15,7 +15,7 @@ EDOT Config Explainer is a Python CLI tool and web application that automaticall
 ### **1. Clone the repository:**
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/explain-config.git
+   git clone https://github.com/alexandra5000/explain-config.git
    cd explain-config
    ```
 
@@ -38,17 +38,11 @@ EDOT Config Explainer is a Python CLI tool and web application that automaticall
 
   Download from https://ollama.ai.
 
-  or, on macOS:
-
-  ```bash
-  brew install ollama
-  ```
-
 ### **4. Pull a model:**
 
   ```bash
   # Pull a model (one-time setup)
-  ollama pull llama3.2        # Small, fast (2GB)
+  ollama pull llama3.2        # Default, small, fast (2GB)
   # or
   ollama pull llama3.1:8b     # Better quality (4.7GB)
   ```
