@@ -14,8 +14,8 @@ class DocsManager:
     """Manage downloading, caching, and retrieving Elastic and upstream OpenTelemetry documentation."""
     
     DOCS_URL = "https://www.elastic.co/docs/llm.zip"
-    OTEL_COLLECTOR_REPO = "https://github.com/open-telemetry/opentelemetry-collector"
-    OTEL_COLLECTOR_DOCS_URL = "https://api.github.com/repos/open-telemetry/opentelemetry-collector/contents/docs"
+    OTEL_COLLECTOR_REPO = "https://github.com/open-telemetry/opentelemetry-collector-contrib"
+    OTEL_COLLECTOR_DOCS_URL = "https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib/contents"
     CACHE_DIR = Path.home() / ".explain_config" / "elastic_docs"
     OTEL_CACHE_DIR = Path.home() / ".explain_config" / "otel_docs"
     CACHE_INFO_FILE = CACHE_DIR / "cache_info.json"
@@ -166,52 +166,129 @@ class DocsManager:
         
         try:
             # Use GitHub API to get docs directory contents
+            import time
             
-            # Key docs directories/files to fetch
-            docs_paths = [
-                "docs/components/receivers",
-                "docs/components/processors", 
-                "docs/components/exporters",
-                "docs/components/extensions"
-            ]
+            # Component directories in the contrib repo
+            component_types = ["receiver", "processor", "exporter", "extension"]
             
             if self.otel_docs_dir.exists():
                 import shutil
                 shutil.rmtree(self.otel_docs_dir)
             self.otel_docs_dir.mkdir(parents=True, exist_ok=True)
             
-            # Fetch documentation files from GitHub
+            # Fetch README files from component directories
+            # Use raw.githubusercontent.com directly to avoid API rate limits entirely
             files_downloaded = 0
-            for docs_path in docs_paths:
+            
+            # Common component names - we'll try these directly via raw URLs
+            # This avoids the API rate limit issue completely
+            common_components = {
+                "receiver": [
+                    "otlpreceiver", "prometheusreceiver", "jaegerreceiver", "zipkinreceiver",
+                    "filelogreceiver", "syslogreceiver", "fluentforwardreceiver", "kafkareceiver",
+                    "redisreceiver", "postgresqlreceiver", "mysqlreceiver", "mongodbreceiver",
+                    "elasticsearchreceiver", "apachereceiver", "nginxreceiver", "hostmetricsreceiver",
+                    "kubeletstatsreceiver", "k8sclusterreceiver", "k8seventsreceiver", "k8sobjectsreceiver",
+                    "dockerstatsreceiver", "statsdreceiver", "carbonreceiver", "collectdreceiver",
+                    "jmxreceiver", "sapmreceiver", "splunkhecreceiver", "wavefrontreceiver",
+                    "signalfxreceiver", "datadogreceiver", "awsxrayreceiver", "awsecscontainermetricsreceiver",
+                    "awscloudwatchmetricsreceiver", "azuremonitorreceiver", "googlecloudspannerreceiver",
+                    "googlecloudpubsubreceiver", "azureeventhubreceiver", "snowflakereceiver"
+                ],
+                "processor": [
+                    "batchprocessor", "memorylimiterprocessor", "probabilisticsamplerprocessor",
+                    "attributesprocessor", "resourceprocessor", "transformprocessor", "filterprocessor",
+                    "spanprocessor", "metricstransformprocessor", "routingprocessor", "groupbytraceprocessor",
+                    "cumulativetodeltaprocessor", "deltatorateprocessor", "tail_samplingprocessor",
+                    "servicegraphprocessor", "spanmetricsprocessor", "k8sattributesprocessor",
+                    "resourcedetectionprocessor", "redactionprocessor", "groupbyattrsprocessor"
+                ],
+                "exporter": [
+                    "otlpexporter", "otlphttpexporter", "prometheusexporter", "prometheusremotewriteexporter",
+                    "jaegerexporter", "zipkinexporter", "kafkaexporter", "fileexporter", "loggingexporter",
+                    "elasticsearchexporter", "splunkhecexporter", "signalfxexporter", "datadogexporter",
+                    "awsxrayexporter", "awscloudwatchlogsexporter", "awscloudwatchmetricsexporter",
+                    "googlecloudpubsubexporter", "googlecloudstorageexporter", "azuremonitorexporter",
+                    "azureeventhubrexporter", "sapmexporter", "wavefrontexporter", "carbonexporter",
+                    "collectdexporter", "influxdbexporter", "sentryexporter", "newrelicexporter"
+                ],
+                "extension": [
+                    "healthcheckextension", "pprofextension", "zpagesextension", "bearertokenauthextension",
+                    "oauth2clientauthextension", "oidcauthextension", "basicauthextension",
+                    "awsauthextension", "headerssetterextension", "filestorageextension",
+                    "memoryballastextension", "k8sobserverextension", "hostobserverextension"
+                ]
+            }
+            
+            for component_type in component_types:
+                # Create subdirectory for this component type
+                type_dir = self.otel_docs_dir / component_type
+                type_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Try to get full list via API first (if not rate limited)
+                components_to_try = []
+                api_url = f"https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib/contents/{component_type}"
                 try:
-                    api_url = f"https://api.github.com/repos/open-telemetry/opentelemetry-collector/contents/{docs_path}"
                     response = requests.get(api_url, timeout=30)
-                    if response.status_code != 200:
+                    if response.status_code == 200:
+                        components = response.json()
+                        if isinstance(components, list):
+                            components_to_try = [c.get("name", "") for c in components if c.get("type") == "dir" and c.get("name")]
+                            print(f"Found {len(components_to_try)} {component_type} components via API, downloading...", file=sys.stderr)
+                except Exception:
+                    pass
+                
+                # Fallback to common components if API fails
+                if not components_to_try:
+                    components_to_try = common_components.get(component_type, [])
+                    print(f"Using {len(components_to_try)} common {component_type} components, downloading...", file=sys.stderr)
+                
+                # Download README.md from each component using raw URLs (no API rate limits)
+                for component_name in components_to_try:
+                    if not component_name:
                         continue
                     
-                    items = response.json()
-                    if not isinstance(items, list):
+                    try:
+                        # Use raw.githubusercontent.com directly (no API rate limits for raw content)
+                        # This is much faster and doesn't count against API rate limits
+                        raw_url = f"https://raw.githubusercontent.com/open-telemetry/opentelemetry-collector-contrib/main/{component_type}/{component_name}/README.md"
+                        file_response = requests.get(raw_url, timeout=30)
+                        
+                        if file_response.status_code == 200:
+                            file_path = type_dir / f"{component_name}.md"
+                            try:
+                                file_path.write_text(file_response.text, encoding='utf-8')
+                                files_downloaded += 1
+                                if files_downloaded % 20 == 0:
+                                    print(f"Downloaded {files_downloaded} files...", file=sys.stderr)
+                            except (IOError, OSError) as e:
+                                # Handle broken pipe or file write errors gracefully
+                                print(f"Warning: Could not write {file_path}: {e}", file=sys.stderr)
+                                continue
+                        elif file_response.status_code == 404:
+                            # Component doesn't have README, skip silently
+                            continue
+                        elif file_response.status_code == 403:
+                            # Rate limited - add delay and continue
+                            print(f"Rate limited, waiting 2 seconds...", file=sys.stderr)
+                            time.sleep(2)
+                            continue
+                        else:
+                            # Other error, skip this component
+                            continue
+                        
+                        # Small delay to be respectful
+                        time.sleep(0.05)
+                        
+                    except requests.exceptions.RequestException as e:
+                        # Handle network errors gracefully
                         continue
-                    
-                    # Create subdirectory
-                    subdir = self.otel_docs_dir / docs_path.replace("docs/", "")
-                    subdir.mkdir(parents=True, exist_ok=True)
-                    
-                    # Download markdown files
-                    for item in items:
-                        if item.get("type") == "file" and item.get("name", "").endswith(".md"):
-                            file_url = item.get("download_url")
-                            if file_url:
-                                file_response = requests.get(file_url, timeout=30)
-                                if file_response.status_code == 200:
-                                    file_path = subdir / item["name"]
-                                    file_path.write_text(file_response.text, encoding='utf-8')
-                                    files_downloaded += 1
-                                    
-                except Exception as e:
-                    # Continue if one path fails
-                    print(f"Warning: Could not download {docs_path}: {e}", file=sys.stderr)
-                    continue
+                    except (IOError, OSError) as e:
+                        # Handle broken pipe and other I/O errors
+                        continue
+                    except Exception as e:
+                        # Skip components without README or with other errors
+                        continue
             
             if files_downloaded > 0:
                 self._save_otel_cache_info({

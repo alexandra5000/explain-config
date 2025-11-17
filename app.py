@@ -112,11 +112,28 @@ with st.sidebar:
     if st.button("🔄 Refresh Docs", help="Force download latest documentation"):
         with st.spinner("Downloading latest documentation..."):
             try:
-                docs_manager.download_docs(force=True)
+                # Download Elastic docs first
+                try:
+                    docs_manager.download_docs(force=True)
+                    st.success("✓ Elastic docs refreshed")
+                except Exception as e:
+                    st.warning(f"Elastic docs: {str(e)[:100]}")
+                
+                # Then download OTel docs
                 if docs_manager.include_upstream:
-                    docs_manager.download_otel_docs(force=True)
-                st.success("Documentation refreshed!")
+                    try:
+                        docs_manager.download_otel_docs(force=True)
+                        st.success("✓ OpenTelemetry docs refreshed")
+                    except Exception as e:
+                        st.warning(f"OpenTelemetry docs: {str(e)[:100]}")
+                
                 st.rerun()
+            except (IOError, OSError) as e:
+                # Handle broken pipe errors specifically
+                if "Broken pipe" in str(e) or "errno 32" in str(e).lower():
+                    st.warning("Connection interrupted during download. Some docs may have been updated. Try refreshing again.")
+                else:
+                    st.error(f"Error refreshing docs: {e}")
             except Exception as e:
                 st.error(f"Error refreshing docs: {e}")
 
